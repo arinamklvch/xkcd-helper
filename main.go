@@ -1,3 +1,8 @@
+// Package main provides an HTTP API for loading XKCD comics by range.
+//
+// @title XKCD Helper API
+// @version 1.0
+// @description API for loading XKCD comic titles by comic number range.
 package main
 
 import (
@@ -12,6 +17,9 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	_ "github.com/arinamklvch/xkcd-helper/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Comic struct {
@@ -52,6 +60,17 @@ func downloadComic(comicNum <-chan int, responses chan<- Response) {
 	}
 }
 
+// handler loads XKCD comics in the requested numeric range.
+//
+// @Summary Load comics
+// @Description Returns XKCD comics as "number, title" strings for the requested range.
+// @Tags comics
+// @Produce json
+// @Param from query int true "Starting comic number"
+// @Param to query int true "Ending comic number"
+// @Success 200 {array} string "Loaded comics"
+// @Failure 500 {string} string "Failed to send JSON"
+// @Router /load-comics [get]
 func handler(w http.ResponseWriter, r *http.Request) {
 	from, _ := strconv.Atoi(r.URL.Query().Get("from"))
 	to, _ := strconv.Atoi(r.URL.Query().Get("to"))
@@ -84,6 +103,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/load-comics", handler)
+	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 	server := http.Server{Addr: ":8081"}
 	go func() {
 		err := server.ListenAndServe()
