@@ -1,11 +1,17 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
-	"flag"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
 )
 
 type Comic struct {
@@ -18,61 +24,81 @@ type Response struct {
 	err error
 }
 
-func downloadComic(comicNum <-chan int, result chan<- Response) {
+func downloadComic(comicNum <-chan int, responses chan<- Response) {
 	for n := range comicNum {
 		url := fmt.Sprintf("https://xkcd.com/%d/info.0.json", n)
 		response, err := http.Get(url)
 		if err != nil {
-			result <- Response{err: fmt.Errorf("Request error: %w", err)}
-			return
+			responses <- Response{err: err}
+			continue
 		}
 		defer response.Body.Close()
-		if response.StatusCode == http.StatusNotFound && n != 404 {
-			return
-		}
 		if response.StatusCode != http.StatusOK {
-			result <- Response{err: fmt.Errorf("Unexpected status code: %s", response.Status)}
-			return
+			responses <- Response{err: fmt.Errorf("Unexpected status code: %s", response.Status)}
+			continue
 		}
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
-			result <- Response{err: fmt.Errorf("Error reading response: %w", err)}
-			return
+			responses <- Response{err: err}
+			continue
 		}
 		var comic Comic
-		err = json.Unmarshal(body, &comic) // err != nil, err = "Failed unmarshal: unexpected ..."
+		err = json.Unmarshal(body, &comic)
 		if err != nil {
-			result <- Response{err: fmt.Errorf("Error decoding JSON: %w", err)} // err after errorf will be like "Error decoding JSON: 'Failed unmarshal: ...'
-			return
+			responses <- Response{err: err}
+			continue
 		}
-		result <- Response{str: fmt.Sprintf("Comic number: %d. Comic title: \"%s\".", comic.Num, comic.Title)}
+		responses <- Response{str: fmt.Sprintf("%d, %s", comic.Num, comic.Title)}
 	}
+}
 
+func handler(w http.ResponseWriter, r *http.Request) {
+	from, _ := strconv.Atoi(r.URL.Query().Get("from"))
+	to, _ := strconv.Atoi(r.URL.Query().Get("to"))
+	totalCnt := to - from + 1
+	comicNums := make(chan int, totalCnt)
+	responses := make(chan Response, totalCnt)
+	maxWorkers := 5
+	for range maxWorkers {
+		go downloadComic(comicNums, responses)
+	}
+	for n := from; n <= to; n++ {
+		comicNums <- n
+	}
+	close(comicNums)
+	comics := []string{}
+	for i := 1; i <= totalCnt; i++ {
+		resp := <-responses
+		if resp.err != nil {
+			fmt.Println("Error:", resp.err)
+			continue
+		}
+		comics = append(comics, resp.str)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(comics)
+	if err != nil {
+		http.Error(w, "Failed to send JSON", http.StatusInternalServerError)
+	}
 }
 
 func main() {
-	maxWorkers := flag.Int("workers", 5, "max number of work")
-	left := flag.Int("first", 1, "left boundary")
-	right := flag.Int("last", 100, "right boundary")
-	flag.Parse()
-	totalCnt := *right - *left + 1
-	comicNum := make(chan int, totalCnt)
-	result := make(chan Response, totalCnt)
-
-	for w := 1; w <= *maxWorkers; w++ {
-		go downloadComic(comicNum, result)
-	}
-
-	for n := *left; n <= *right; n++ {
-		comicNum <- n
-	}
-	close(comicNum)
-
-	for i := 1; i <= totalCnt; i++ {
-		res := <-result
-		if res.err != nil {
-			fmt.Printf("%s", res.err.Error())
+	http.HandleFunc("/load-comics", handler)
+	server := http.Server{Addr: ":8081"}
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			fmt.Println("Server failed:", err)
 		}
-		fmt.Println(res.str)
+	}()
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, syscall.SIGINT)
+	s := <-signalChannel
+	fmt.Println("\nCatched signal:", s)
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFunc()
+	err := server.Shutdown(ctx)
+	if err != nil {
+		fmt.Println("Error:", err)
 	}
 }
