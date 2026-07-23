@@ -6,7 +6,6 @@
         "contact": {},
         "version": "1.0"
     },
-    "basePath": "/",
     "paths": {
         "/load-comics": {
             "get": {
@@ -40,7 +39,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "$ref": "#/definitions/dto.Comic"
                             }
                         }
                     },
@@ -50,6 +49,19 @@
                             "type": "string"
                         }
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.Comic": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "num": {
+                    "type": "integer"
                 }
             }
         }

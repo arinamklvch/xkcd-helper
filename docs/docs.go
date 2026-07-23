@@ -47,7 +47,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "string"
+                                "$ref": "#/definitions/dto.Comic"
                             }
                         }
                     },
@@ -60,6 +60,19 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "definitions": {
+        "dto.Comic": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "num": {
+                    "type": "integer"
+                }
+            }
+        }
     }
 }`
 
@@ -67,12 +80,14 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
-	BasePath:         "/",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "XKCD Helper API",
 	Description:      "API for loading XKCD comic titles by comic number range.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {
