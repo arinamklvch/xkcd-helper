@@ -1,38 +1,46 @@
+definitions:
+  dto.Comic:
+    properties:
+      description:
+        type: string
+      num:
+        type: integer
+    type: object
 info:
   contact: {}
   description: API for loading XKCD comic titles by comic number range.
   title: XKCD Helper API
   version: "1.0"
-basePath: /
 paths:
   /load-comics:
     get:
-      description: Returns XKCD comics as "number, title" strings for the requested range.
-      produces:
-        - application/json
-      tags:
-        - comics
-      summary: Load comics
+      description: Returns XKCD comics as "number, title" strings for the requested
+        range.
       parameters:
-        - type: integer
-          description: Starting comic number
-          name: from
-          in: query
-          required: true
-        - type: integer
-          description: Ending comic number
-          name: to
-          in: query
-          required: true
+      - description: Starting comic number
+        in: query
+        name: from
+        required: true
+        type: integer
+      - description: Ending comic number
+        in: query
+        name: to
+        required: true
+        type: integer
+      produces:
+      - application/json
       responses:
         "200":
           description: Loaded comics
           schema:
-            type: array
             items:
-              type: string
+              $ref: '#/definitions/dto.Comic'
+            type: array
         "500":
           description: Failed to send JSON
           schema:
             type: string
+      summary: Load comics
+      tags:
+      - comics
 swagger: "2.0"
