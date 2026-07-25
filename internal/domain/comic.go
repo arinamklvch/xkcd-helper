@@ -1,6 +1,15 @@
 package domain
 
 type Comic struct {
-	Num   int
-	Title string
+	Month      string
+	Num        int
+	Link       string
+	Year       string
+	News       string
+	SafeTitle  string
+	Transcript string
+	Alt        string
+	Img        string
+	Title      string
+	Day        string
 }

@@ -13,6 +13,7 @@ type Handler struct {
 	service *usecase.Service
 }
 
+// чтобы Handler мог пользоваться бизнес-логикой через service
 func NewHandler(service *usecase.Service) *Handler {
 	return &Handler{
 		service: service,

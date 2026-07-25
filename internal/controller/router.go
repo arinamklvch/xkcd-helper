@@ -8,9 +8,12 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// собираем таблицу маршрутов для сервера
+// “распределитель” HTTP-запросов
 func NewRouter(service *usecase.Service) *http.ServeMux {
 	mux := http.NewServeMux()
 
+	// обработчик с функциями из service
 	handler := NewHandler(service)
 	mux.HandleFunc("GET /load-comics", handler.LoadComics)
 	mux.HandleFunc("GET /swagger/", httpSwagger.WrapHandler)
