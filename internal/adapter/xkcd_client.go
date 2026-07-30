@@ -23,17 +23,17 @@ func NewXkcdClient(client http.Client) *XkcdClient {
 }
 
 type Comic struct {
-	Month      string
-	Num        int
-	Link       string
-	Year       string
-	News       string
-	SafeTitle  string
-	Transcript string
-	Alt        string
-	Img        string
-	Title      string
-	Day        string
+	Month      string `json:"month"`
+	Num        int    `json:"num"`
+	Link       string `json:"link"`
+	Year       string `json:"year"`
+	News       string `json:"news"`
+	SafeTitle  string `json:"safe_title"`
+	Transcript string `json:"transcript"`
+	Alt        string `json:"alt"`
+	Img        string `json:"img"`
+	Title      string `json:"title"`
+	Day        string `json:"day"`
 }
 
 type response struct {
@@ -67,6 +67,7 @@ func (x *XkcdClient) GetLatestComicNum() (int, error) {
 }
 
 func (x *XkcdClient) DownloadComicsRange(from, to int) ([]domain.Comic, error) {
+	fmt.Println("start downloading...")
 	totalCnt := to - from + 1
 	comicNums := make(chan int, totalCnt)
 	responses := make(chan response, totalCnt)
@@ -81,7 +82,9 @@ func (x *XkcdClient) DownloadComicsRange(from, to int) ([]domain.Comic, error) {
 	close(comicNums)
 
 	comics := make([]domain.Comic, 0, totalCnt)
+	var count int
 	for range totalCnt {
+		count++
 		resp := <-responses
 		if resp.Err != nil {
 			return nil, resp.Err
@@ -103,8 +106,12 @@ func (x *XkcdClient) DownloadComicsRange(from, to int) ([]domain.Comic, error) {
 			Title:      resp.Comic.Title,
 			Day:        resp.Comic.Day,
 		})
-	}
 
+		if count%100 == 0 {
+			fmt.Println("comics downloaded:", count)
+		}
+	}
+	fmt.Println("finished downloading.")
 	return comics, nil
 }
 

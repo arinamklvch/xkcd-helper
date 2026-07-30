@@ -1,14 +1,24 @@
 definitions:
-  dto.Comic:
+  dto.LoadComic:
     properties:
       description:
         type: string
       num:
         type: integer
     type: object
+  dto.SearchComic:
+    properties:
+      description:
+        type: string
+      image_url:
+        type: string
+      num:
+        type: integer
+    type: object
 info:
   contact: {}
-  description: API for loading XKCD comic titles by comic number range.
+  description: API for loading XKCD comics by number range and searching comics by
+    query words.
   title: XKCD Helper API
   version: "1.0"
 paths:
@@ -34,13 +44,39 @@ paths:
           description: Loaded comics
           schema:
             items:
-              $ref: '#/definitions/dto.Comic'
+              $ref: '#/definitions/dto.LoadComic'
             type: array
         "500":
           description: Failed to send JSON
           schema:
             type: string
       summary: Load comics
+      tags:
+      - comics
+  /search-comics:
+    get:
+      description: Returns XKCD comics as "number, title, image URL" objects for the
+        requested search query.
+      parameters:
+      - description: Search query words separated by +
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Matching comics
+          schema:
+            items:
+              $ref: '#/definitions/dto.SearchComic'
+            type: array
+        "500":
+          description: Failed to send JSON
+          schema:
+            type: string
+      summary: Search comics
       tags:
       - comics
 swagger: "2.0"

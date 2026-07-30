@@ -6,41 +6,27 @@ import (
 	"strconv"
 
 	"github.com/arinamklvch/xkcd-helper/internal/dto"
-	"github.com/arinamklvch/xkcd-helper/internal/usecase"
 )
 
-type Handler struct {
-	service *usecase.Service
-}
-
-// чтобы Handler мог пользоваться бизнес-логикой через service
-func NewHandler(service *usecase.Service) *Handler {
-	return &Handler{
-		service: service,
-	}
-}
-
-// handler loads XKCD comics in the requested numeric range.
-//
 // @Summary Load comics
 // @Description Returns XKCD comics as "number, title" strings for the requested range.
 // @Tags comics
 // @Produce json
 // @Param from query int true "Starting comic number"
 // @Param to query int true "Ending comic number"
-// @Success 200 {array} dto.Comic "Loaded comics"
+// @Success 200 {array} dto.LoadComic "Loaded comics"
 // @Failure 500 {string} string "Failed to send JSON"
 // @Router /load-comics [get]
-func (h *Handler) LoadComics(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) loadComics(w http.ResponseWriter, r *http.Request) {
 	from, err := strconv.Atoi(r.URL.Query().Get("from"))
 	if err != nil {
-		http.Error(w, "Invalid from", http.StatusBadRequest)
+		http.Error(w, "invalid 'from' parameter", http.StatusBadRequest)
 		return
 	}
 
 	to, err := strconv.Atoi(r.URL.Query().Get("to"))
 	if err != nil {
-		http.Error(w, "Invalid to", http.StatusBadRequest)
+		http.Error(w, "invalid 'to' parameter", http.StatusBadRequest)
 		return
 	}
 
@@ -54,14 +40,14 @@ func (h *Handler) LoadComics(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 
-	ouputDTO := []dto.Comic{}
+	ouputDto := []dto.LoadComic{}
 	for _, o := range output {
-		ouputDTO = append(ouputDTO, dto.Comic{
+		ouputDto = append(ouputDto, dto.LoadComic{
 			Num:   o.Num,
 			Title: o.Title,
 		})
 	}
-	err = json.NewEncoder(w).Encode(ouputDTO)
+	err = json.NewEncoder(w).Encode(ouputDto)
 	if err != nil {
 		http.Error(w, "Failed to send JSON", http.StatusInternalServerError)
 	}

@@ -11,6 +11,44 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getComicsByNums = `-- name: GetComicsByNums :many
+SELECT month, num, link, year, news, safe_title, transcript, alt, img, title, day
+FROM comics
+WHERE num = ANY($1::INT[])
+`
+
+func (q *Queries) GetComicsByNums(ctx context.Context, nums []int32) ([]Comic, error) {
+	rows, err := q.db.Query(ctx, getComicsByNums, nums)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Comic{}
+	for rows.Next() {
+		var i Comic
+		if err := rows.Scan(
+			&i.Month,
+			&i.Num,
+			&i.Link,
+			&i.Year,
+			&i.News,
+			&i.SafeTitle,
+			&i.Transcript,
+			&i.Alt,
+			&i.Img,
+			&i.Title,
+			&i.Day,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getComicsRange = `-- name: GetComicsRange :many
 SELECT month, num, link, year, news, safe_title, transcript, alt, img, title, day
 FROM comics

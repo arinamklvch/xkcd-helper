@@ -42,6 +42,17 @@ func (c *ComicsStorage) GetComicsRange(from, to int) ([]domain.Comic, error) {
 	return domainComics, nil
 }
 
+func (c *ComicsStorage) GetComicsByNums(nums []int32) ([]domain.Comic, error) {
+	dbComics, err := c.queries.GetComicsByNums(context.Background(), nums)
+	if err != nil {
+		return nil, err
+	}
+
+	domainComics := mapDbComicToDomainComic(dbComics)
+
+	return domainComics, nil
+}
+
 func mapDbComicToDomainComic(dbComics []db.Comic) []domain.Comic {
 	domainComics := make([]domain.Comic, 0, len(dbComics))
 	for _, comic := range dbComics {

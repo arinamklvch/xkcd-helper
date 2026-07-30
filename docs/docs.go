@@ -47,7 +47,45 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dto.Comic"
+                                "$ref": "#/definitions/dto.LoadComic"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to send JSON",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/search-comics": {
+            "get": {
+                "description": "Returns XKCD comics as \"number, title, image URL\" objects for the requested search query.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "comics"
+                ],
+                "summary": "Search comics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query words separated by +",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Matching comics",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.SearchComic"
                             }
                         }
                     },
@@ -62,10 +100,24 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.Comic": {
+        "dto.LoadComic": {
             "type": "object",
             "properties": {
                 "description": {
+                    "type": "string"
+                },
+                "num": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.SearchComic": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "image_url": {
                     "type": "string"
                 },
                 "num": {
@@ -83,7 +135,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "XKCD Helper API",
-	Description:      "API for loading XKCD comic titles by comic number range.",
+	Description:      "API for loading XKCD comics by number range and searching comics by query words.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

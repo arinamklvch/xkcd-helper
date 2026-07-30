@@ -21,3 +21,8 @@ type Comic struct {
 	Title      pgtype.Text `json:"title"`
 	Day        pgtype.Text `json:"day"`
 }
+
+type InvertedIndex struct {
+	Word       pgtype.Text `json:"word"`
+	ComicsNums []int32     `json:"comics_nums"`
+}

@@ -20,6 +20,11 @@ SELECT COALESCE(MAX(num), 0)::INT
 FROM comics;
 
 -- name: GetComicsRange :many
-SELECT month, num, link, year, news, safe_title, transcript, alt, img, title, day
+SELECT *
 FROM comics
 WHERE sqlc.arg('from') <= num AND num <= sqlc.arg('to');
+
+-- name: GetComicsByNums :many
+SELECT *
+FROM comics
+WHERE num = ANY(@nums::INT[]);
