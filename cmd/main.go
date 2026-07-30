@@ -1,8 +1,8 @@
-// Package main provides an HTTP API for loading XKCD comics by range.
+// Package main provides an HTTP API for loading and searching XKCD comics.
 //
 // @title XKCD Helper API
 // @version 1.0
-// @description API for loading XKCD comic titles by comic number range.
+// @description API for loading XKCD comics by number range and searching comics by query words.
 package main
 
 import (
@@ -38,7 +38,7 @@ func run() error {
 	xkcdClient := adapter.NewXkcdClient(*http.DefaultClient)
 
 	// подключение к базе
-	databaseURL := "postgres://rental:rental@localhost:5433/rental?sslmode=disable"
+	databaseURL := "postgres://admin:admin@localhost:5433/xkcd?sslmode=disable"
 	pool, err := initPostgreSQL(databaseURL)
 	if err != nil {
 		return err
@@ -48,10 +48,11 @@ func run() error {
 	// comicsStorage -- штука которая умеет удобно отправлять запросы в БД
 	// создаем ComicsStorage на основе подключения pool
 	comicsStorage := adapter.NewComicsStorage(pool)
+	invertedIndexStorage := adapter.NewInvertedIndexStorage(pool)
 
 	// Service -- объект, в котором будут методы use case / бизнес-логики
 	// xkcdClient, comicsStorage -- инструменты для похода во внешние источники
-	service := usecase.New(xkcdClient, comicsStorage)
+	service := usecase.New(xkcdClient, comicsStorage, invertedIndexStorage)
 	// загружаем все/новые комиксы один раз при запуске
 	err = service.UpdateComics()
 	if err != nil {
@@ -69,8 +70,7 @@ func run() error {
 
 	serverErrCh := make(chan error, 1)
 	go func() {
-
-		// код останавливается пока сервер работает без остановки и ошибок
+		// т.к. код останавливается пока сервер работает без остановки и ошибок
 		err := server.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErrCh <- err

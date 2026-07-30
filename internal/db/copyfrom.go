@@ -50,3 +50,36 @@ func (r iteratorForInsertComics) Err() error {
 func (q *Queries) InsertComics(ctx context.Context, arg []InsertComicsParams) (int64, error) {
 	return q.db.CopyFrom(ctx, []string{"comics"}, []string{"month", "num", "link", "year", "news", "safe_title", "transcript", "alt", "img", "title", "day"}, &iteratorForInsertComics{rows: arg})
 }
+
+// iteratorForInsertIntoInvertedIndex implements pgx.CopyFromSource.
+type iteratorForInsertIntoInvertedIndex struct {
+	rows                 []InsertIntoInvertedIndexParams
+	skippedFirstNextCall bool
+}
+
+func (r *iteratorForInsertIntoInvertedIndex) Next() bool {
+	if len(r.rows) == 0 {
+		return false
+	}
+	if !r.skippedFirstNextCall {
+		r.skippedFirstNextCall = true
+		return true
+	}
+	r.rows = r.rows[1:]
+	return len(r.rows) > 0
+}
+
+func (r iteratorForInsertIntoInvertedIndex) Values() ([]interface{}, error) {
+	return []interface{}{
+		r.rows[0].Word,
+		r.rows[0].ComicsNums,
+	}, nil
+}
+
+func (r iteratorForInsertIntoInvertedIndex) Err() error {
+	return nil
+}
+
+func (q *Queries) InsertIntoInvertedIndex(ctx context.Context, arg []InsertIntoInvertedIndexParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"inverted_index"}, []string{"word", "comics_nums"}, &iteratorForInsertIntoInvertedIndex{rows: arg})
+}

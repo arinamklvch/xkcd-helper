@@ -5,8 +5,8 @@ type LoadComicsInput struct {
 	To   int
 }
 
-// dto.Comic -- сущность для/из handler
-type Comic struct {
+// dto.LoadComic -- сущность для/из handler
+type LoadComic struct {
 	Num   int    `json:"num"`
 	Title string `json:"description"`
 }

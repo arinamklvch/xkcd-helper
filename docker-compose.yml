@@ -8,12 +8,12 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - rental-sqlc-demo-postgres:/var/lib/postgresql/data
+      - xkcd-postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rental -d rental"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d xkcd"]
       interval: 5s
       timeout: 3s
       retries: 10
 
 volumes:
-  rental-sqlc-demo-postgres:
+  xkcd-postgres:

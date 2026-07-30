@@ -13,14 +13,11 @@ up:
 db-up: ## Start Postgres
 	docker compose up -d postgres
 
-db-down: ## Stop Postgres and remove its volume
+db-down: ## Stop Postgres
+	docker compose down
+
+db-kill: ## Removes volume
 	docker compose down -v
-
-migrate-up: ## Apply migrations with goose
-	$(GOOSE) -dir migrations postgres "$(DATABASE_URL)" up
-
-migrate-down: ## Roll back the last migration with goose
-	$(GOOSE) -dir migrations postgres "$(DATABASE_URL)" down
-
+	
 sqlc: ## Generate Go code from SQL
 	$(SQLC) generate
