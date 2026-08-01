@@ -12,7 +12,7 @@ type Querier interface {
 	GetComicsByNums(ctx context.Context, nums []int32) ([]Comic, error)
 	GetComicsRange(ctx context.Context, arg GetComicsRangeParams) ([]Comic, error)
 	GetFromInvertedIndex(ctx context.Context, words []string) ([][]int32, error)
-	GetLatestComicNum(ctx context.Context) (int32, error)
+	GetLatestComic(ctx context.Context) (Comic, error)
 	InsertComics(ctx context.Context, arg []InsertComicsParams) (int64, error)
 	InsertIntoInvertedIndex(ctx context.Context, arg []InsertIntoInvertedIndexParams) (int64, error)
 }

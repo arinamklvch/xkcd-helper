@@ -15,6 +15,32 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/last-comics": {
+            "get": {
+                "description": "Returns the latest stored XKCD comic as a \"number, title, image URL\" object.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "comics"
+                ],
+                "summary": "Get last comic",
+                "responses": {
+                    "200": {
+                        "description": "Latest comic",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchComic"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to send JSON",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/load-comics": {
             "get": {
                 "description": "Returns XKCD comics as \"number, title\" strings for the requested range.",
@@ -73,7 +99,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Search query words separated by +",
+                        "description": "Search query words separated by spaces",
                         "name": "q",
                         "in": "query",
                         "required": true
@@ -91,6 +117,29 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Failed to send JSON",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/update": {
+            "put": {
+                "description": "Downloads and stores new XKCD comics that are not yet present in the database.",
+                "tags": [
+                    "comics"
+                ],
+                "summary": "Update comics",
+                "responses": {
+                    "200": {
+                        "description": "Comics updated",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update comics",
                         "schema": {
                             "type": "string"
                         }

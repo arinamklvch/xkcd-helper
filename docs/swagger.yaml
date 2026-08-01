@@ -22,6 +22,24 @@ info:
   title: XKCD Helper API
   version: "1.0"
 paths:
+  /last-comics:
+    get:
+      description: Returns the latest stored XKCD comic as a "number, title, image
+        URL" object.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Latest comic
+          schema:
+            $ref: '#/definitions/dto.SearchComic'
+        "500":
+          description: Failed to send JSON
+          schema:
+            type: string
+      summary: Get last comic
+      tags:
+      - comics
   /load-comics:
     get:
       description: Returns XKCD comics as "number, title" strings for the requested
@@ -58,7 +76,7 @@ paths:
       description: Returns XKCD comics as "number, title, image URL" objects for the
         requested search query.
       parameters:
-      - description: Search query words separated by +
+      - description: Search query words separated by spaces
         in: query
         name: q
         required: true
@@ -77,6 +95,22 @@ paths:
           schema:
             type: string
       summary: Search comics
+      tags:
+      - comics
+  /update:
+    put:
+      description: Downloads and stores new XKCD comics that are not yet present in
+        the database.
+      responses:
+        "200":
+          description: Comics updated
+          schema:
+            type: string
+        "500":
+          description: Failed to update comics
+          schema:
+            type: string
+      summary: Update comics
       tags:
       - comics
 swagger: "2.0"
