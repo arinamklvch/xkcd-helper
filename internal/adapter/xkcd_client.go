@@ -41,15 +41,21 @@ type response struct {
 	Err   error
 }
 
+func closeBody(body io.Closer) {
+	if err := body.Close(); err != nil {
+		fmt.Println("failed to close response body:", err)
+	}
+}
+
 func (x *XkcdClient) GetLatestComicNum() (int, error) {
 	resp, err := x.client.Get(latestComicUrl)
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("Unexpected status code: %s", resp.Status)
+		return 0, fmt.Errorf("unexpected status code: %s", resp.Status)
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -126,19 +132,21 @@ func (x *XkcdClient) worker(comicNum <-chan int, responses chan<- response) {
 			responses <- response{Err: err}
 			continue
 		}
-		defer resp.Body.Close()
 
 		if n == http.StatusNotFound {
+			closeBody(resp.Body)
 			responses <- response{}
 			continue
 		}
 
 		if resp.StatusCode != http.StatusOK {
-			responses <- response{Err: fmt.Errorf("Unexpected status code: %s", resp.Status)}
+			closeBody(resp.Body)
+			responses <- response{Err: fmt.Errorf("unexpected status code: %s", resp.Status)}
 			continue
 		}
 
 		body, err := io.ReadAll(resp.Body)
+		closeBody(resp.Body)
 		if err != nil {
 			responses <- response{Err: err}
 			continue

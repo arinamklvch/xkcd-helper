@@ -106,7 +106,11 @@ func runMigrations(databaseURL string) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	defer func() {
+		if closeErr := db.Close(); closeErr != nil {
+			fmt.Println("failed to close db:", closeErr)
+		}
+	}()
 
 	if err := goose.SetDialect("postgres"); err != nil {
 		return err
