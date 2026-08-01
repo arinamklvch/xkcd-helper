@@ -1,9 +1,7 @@
-DATABASE_URL ?= postgres://rental:rental@localhost:5433/rental?sslmode=disable
-PORT ?= 8081
 SQLC ?= $(HOME)/go/bin/sqlc
-GOOSE ?= go run github.com/pressly/goose/v3/cmd/goose@latest
+SWAG ?= $(HOME)/go/bin/swag
 
-.PHONY: db-up db-down migrate-up migrate-down sqlc
+.PHONY: db-up db-down migrate-up migrate-down sqlc swag
 
 up:
 	docker compose up -d --wait postgres
@@ -21,3 +19,6 @@ db-kill: ## Removes volume
 	
 sqlc: ## Generate Go code from SQL
 	$(SQLC) generate
+
+swag: ## Generate Swagger docs
+	$(SWAG) init -g cmd/main.go

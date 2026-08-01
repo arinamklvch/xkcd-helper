@@ -8,6 +8,14 @@ import (
 	"github.com/arinamklvch/xkcd-helper/internal/dto"
 )
 
+// @Summary Search comics
+// @Description Returns XKCD comics as "number, title, image URL" objects for the requested search query.
+// @Tags comics
+// @Produce json
+// @Param q query string true "Search query words separated by spaces"
+// @Success 200 {array} dto.SearchComic "Matching comics"
+// @Failure 500 {string} string "Failed to send JSON"
+// @Router /search-comics [get]
 func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 	words := strings.Fields(r.URL.Query().Get("q"))
 	output, err := h.service.SearchComics(dto.SearchComicsInput{

@@ -33,11 +33,8 @@ func (i *InvertedIndexStorage) InsertIntoInvertedIndex(args []InsertIntoInverted
 		})
 	}
 	_, err := i.queries.InsertIntoInvertedIndex(context.Background(), dbArgs)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func (i *InvertedIndexStorage) GetFromInvertedIndex(words []string) ([][]int32, error) {

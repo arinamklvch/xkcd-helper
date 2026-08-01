@@ -15,9 +15,10 @@ INSERT INTO comics(
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 );
 
--- name: GetLatestComicNum :one
-SELECT COALESCE(MAX(num), 0)::INT
-FROM comics;
+-- name: GetLatestComic :one
+SELECT *
+FROM comics
+WHERE num = (SELECT MAX(num) FROM comics);
 
 -- name: GetComicsRange :many
 SELECT *

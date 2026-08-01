@@ -19,13 +19,13 @@ func NewComicsStorage(pool *pgxpool.Pool) *ComicsStorage {
 	}
 }
 
-func (c *ComicsStorage) GetLatestComicNum() (int, error) {
-	latestNum, err := c.queries.GetLatestComicNum(context.Background())
+func (c *ComicsStorage) GetLatestComic() (domain.Comic, error) {
+	latestComic, err := c.queries.GetLatestComic(context.Background())
 	if err != nil {
-		return 0, err
+		return domain.Comic{}, err
 	}
 
-	return int(latestNum), nil
+	return mapDbComicToDomainComic(latestComic), nil
 }
 
 func (c *ComicsStorage) GetComicsRange(from, to int) ([]domain.Comic, error) {
@@ -37,9 +37,7 @@ func (c *ComicsStorage) GetComicsRange(from, to int) ([]domain.Comic, error) {
 		return nil, err
 	}
 
-	domainComics := mapDbComicToDomainComic(dbComics)
-
-	return domainComics, nil
+	return mapDbComicsToDomainComics(dbComics), nil
 }
 
 func (c *ComicsStorage) GetComicsByNums(nums []int32) ([]domain.Comic, error) {
@@ -48,27 +46,29 @@ func (c *ComicsStorage) GetComicsByNums(nums []int32) ([]domain.Comic, error) {
 		return nil, err
 	}
 
-	domainComics := mapDbComicToDomainComic(dbComics)
-
-	return domainComics, nil
+	return mapDbComicsToDomainComics(dbComics), nil
 }
 
-func mapDbComicToDomainComic(dbComics []db.Comic) []domain.Comic {
+func mapDbComicToDomainComic(dbComic db.Comic) domain.Comic {
+	return domain.Comic{
+		Month:      dbComic.Month.String,
+		Num:        int(dbComic.Num.Int32),
+		Link:       dbComic.Link.String,
+		Year:       dbComic.Year.String,
+		News:       dbComic.News.String,
+		SafeTitle:  dbComic.SafeTitle.String,
+		Transcript: dbComic.Transcript.String,
+		Alt:        dbComic.Alt.String,
+		Img:        dbComic.Img.String,
+		Title:      dbComic.SafeTitle.String,
+		Day:        dbComic.Day.String,
+	}
+}
+
+func mapDbComicsToDomainComics(dbComics []db.Comic) []domain.Comic {
 	domainComics := make([]domain.Comic, 0, len(dbComics))
 	for _, comic := range dbComics {
-		domainComics = append(domainComics, domain.Comic{
-			Month:      comic.Month.String,
-			Num:        int(comic.Num.Int32),
-			Link:       comic.Link.String,
-			Year:       comic.Year.String,
-			News:       comic.News.String,
-			SafeTitle:  comic.SafeTitle.String,
-			Transcript: comic.Transcript.String,
-			Alt:        comic.Alt.String,
-			Img:        comic.Img.String,
-			Title:      comic.SafeTitle.String,
-			Day:        comic.Day.String,
-		})
+		domainComics = append(domainComics, mapDbComicToDomainComic(comic))
 	}
 	return domainComics
 }
@@ -92,9 +92,6 @@ func (c *ComicsStorage) InsertComics(comics []domain.Comic) error {
 	}
 
 	_, err := c.queries.InsertComics(context.Background(), dbComics)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }

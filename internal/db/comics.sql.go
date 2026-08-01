@@ -92,16 +92,29 @@ func (q *Queries) GetComicsRange(ctx context.Context, arg GetComicsRangeParams) 
 	return items, nil
 }
 
-const getLatestComicNum = `-- name: GetLatestComicNum :one
-SELECT COALESCE(MAX(num), 0)::INT
+const getLatestComic = `-- name: GetLatestComic :one
+SELECT month, num, link, year, news, safe_title, transcript, alt, img, title, day
 FROM comics
+WHERE num = (SELECT MAX(num) FROM comics)
 `
 
-func (q *Queries) GetLatestComicNum(ctx context.Context) (int32, error) {
-	row := q.db.QueryRow(ctx, getLatestComicNum)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
+func (q *Queries) GetLatestComic(ctx context.Context) (Comic, error) {
+	row := q.db.QueryRow(ctx, getLatestComic)
+	var i Comic
+	err := row.Scan(
+		&i.Month,
+		&i.Num,
+		&i.Link,
+		&i.Year,
+		&i.News,
+		&i.SafeTitle,
+		&i.Transcript,
+		&i.Alt,
+		&i.Img,
+		&i.Title,
+		&i.Day,
+	)
+	return i, err
 }
 
 type InsertComicsParams struct {

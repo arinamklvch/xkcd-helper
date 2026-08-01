@@ -10,7 +10,8 @@ import (
 
 func (s *Service) UpdateComics() error {
 	// latestDbNum == 0 when database is empty
-	latestDbNum, err := s.comicsStorage.GetLatestComicNum()
+	latestComic, err := s.comicsStorage.GetLatestComic()
+	latestDbNum := latestComic.Num
 	if err != nil {
 		return err
 	}
@@ -30,20 +31,16 @@ func (s *Service) UpdateComics() error {
 		return err
 	}
 
-	if err := s.insertIntoInvertedIndex(comics); err != nil {
-		return err
-	}
-
-	return nil
+	return s.insertIntoInvertedIndex(comics)
 }
 
 func (s *Service) insertIntoInvertedIndex(comics []domain.Comic) error {
 	// building inverted index
-	wordsToNums := make(map[string][]int32) // map[string]map[int32]bool
+	wordsToNums := make(map[string][]int32)
 	for _, comic := range comics {
 		allWords := strings.Split(comic.SafeTitle+" "+comic.Transcript+" "+comic.Alt, " ")
 		for _, word := range allWords {
-			if !slices.Contains(wordsToNums[word], int32(comic.Num)) { // if _, ok := wordsToNums[word][comics.Num]; !ok { ... }
+			if !slices.Contains(wordsToNums[word], int32(comic.Num)) {
 				wordsToNums[word] = append(wordsToNums[word], int32(comic.Num))
 			}
 		}
@@ -57,9 +54,5 @@ func (s *Service) insertIntoInvertedIndex(comics []domain.Comic) error {
 		})
 	}
 
-	if err := s.invertedIndexStorage.InsertIntoInvertedIndex(args); err != nil {
-		return err
-	}
-
-	return nil
+	return s.invertedIndexStorage.InsertIntoInvertedIndex(args)
 }
