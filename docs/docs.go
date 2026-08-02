@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/last-comics": {
             "get": {
-                "description": "Returns the latest stored XKCD comic as a \"number, title, image URL\" object.",
+                "description": "Returns the last stored XKCD comic as a \"number, title, image URL\" object.",
                 "produces": [
                     "application/json"
                 ],
@@ -27,7 +27,7 @@ const docTemplate = `{
                 "summary": "Get last comic",
                 "responses": {
                     "200": {
-                        "description": "Latest comic",
+                        "description": "Last comic",
                         "schema": {
                             "$ref": "#/definitions/dto.SearchComic"
                         }

@@ -2,9 +2,11 @@ package adapter
 
 import (
 	"context"
+	"errors"
 
 	"github.com/arinamklvch/xkcd-helper/internal/db"
 	"github.com/arinamklvch/xkcd-helper/internal/domain"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -19,13 +21,16 @@ func NewComicsStorage(pool *pgxpool.Pool) *ComicsStorage {
 	}
 }
 
-func (c *ComicsStorage) GetLatestComic() (domain.Comic, error) {
-	latestComic, err := c.queries.GetLatestComic(context.Background())
+func (c *ComicsStorage) GetLastComic() (domain.Comic, error) {
+	lastComic, err := c.queries.GetLastComic(context.Background())
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.Comic{}, nil
+		}
 		return domain.Comic{}, err
 	}
 
-	return mapDbComicToDomainComic(latestComic), nil
+	return mapDbComicToDomainComic(lastComic), nil
 }
 
 func (c *ComicsStorage) GetComicsRange(from, to int) ([]domain.Comic, error) {

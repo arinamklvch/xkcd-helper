@@ -8,14 +8,14 @@ import (
 )
 
 // @Summary Get last comic
-// @Description Returns the latest stored XKCD comic as a "number, title, image URL" object.
+// @Description Returns the last stored XKCD comic as a "number, title, image URL" object.
 // @Tags comics
 // @Produce json
-// @Success 200 {object} dto.SearchComic "Latest comic"
+// @Success 200 {object} dto.SearchComic "Last comic"
 // @Failure 500 {string} string "Failed to send JSON"
 // @Router /last-comics [get]
 func (h *Handler) getLastComic(w http.ResponseWriter, r *http.Request) {
-	latestComic, err := h.service.GetLatestComic()
+	lastComic, err := h.service.GetLastComic()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -24,9 +24,9 @@ func (h *Handler) getLastComic(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	ouputDto := dto.SearchComic{
-		Num:    latestComic.Num,
-		Title:  latestComic.Title,
-		ImgUrl: latestComic.Img,
+		Num:    lastComic.Num,
+		Title:  lastComic.Title,
+		ImgUrl: lastComic.Img,
 	}
 
 	err = json.NewEncoder(w).Encode(ouputDto)

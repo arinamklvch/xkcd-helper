@@ -9,7 +9,7 @@ import (
 	"github.com/arinamklvch/xkcd-helper/internal/domain"
 )
 
-const latestComicUrl = "https://xkcd.com/info.0.json"
+const lastComicUrl = "https://xkcd.com/info.0.json"
 const maxWorkers = 5
 
 type XkcdClient struct {
@@ -47,8 +47,8 @@ func closeBody(body io.Closer) {
 	}
 }
 
-func (x *XkcdClient) GetLatestComicNum() (int, error) {
-	resp, err := x.client.Get(latestComicUrl)
+func (x *XkcdClient) GetLastComicNum() (int, error) {
+	resp, err := x.client.Get(lastComicUrl)
 	if err != nil {
 		return 0, err
 	}

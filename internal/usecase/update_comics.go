@@ -9,19 +9,18 @@ import (
 )
 
 func (s *Service) UpdateComics() error {
-	// latestDbNum == 0 when database is empty
-	latestComic, err := s.comicsStorage.GetLatestComic()
-	latestDbNum := latestComic.Num
+	// lastDb == 0 when database is empty
+	lastDbComic, err := s.comicsStorage.GetLastComic()
 	if err != nil {
 		return err
 	}
 
-	latestNum, err := s.xkcdCLient.GetLatestComicNum()
+	lastXkcdNum, err := s.xkcdCLient.GetLastComicNum()
 	if err != nil {
 		return err
 	}
 
-	comics, err := s.xkcdCLient.DownloadComicsRange(latestDbNum+1, latestNum)
+	comics, err := s.xkcdCLient.DownloadComicsRange(lastDbComic.Num+1, lastXkcdNum)
 	if err != nil {
 		return err
 	}
