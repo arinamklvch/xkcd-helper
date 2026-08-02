@@ -92,14 +92,14 @@ func (q *Queries) GetComicsRange(ctx context.Context, arg GetComicsRangeParams) 
 	return items, nil
 }
 
-const getLatestComic = `-- name: GetLatestComic :one
+const getLastComic = `-- name: GetLastComic :one
 SELECT month, num, link, year, news, safe_title, transcript, alt, img, title, day
 FROM comics
 WHERE num = (SELECT MAX(num) FROM comics)
 `
 
-func (q *Queries) GetLatestComic(ctx context.Context) (Comic, error) {
-	row := q.db.QueryRow(ctx, getLatestComic)
+func (q *Queries) GetLastComic(ctx context.Context) (Comic, error) {
+	row := q.db.QueryRow(ctx, getLastComic)
 	var i Comic
 	err := row.Scan(
 		&i.Month,
