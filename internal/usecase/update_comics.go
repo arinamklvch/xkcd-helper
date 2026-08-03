@@ -6,6 +6,7 @@ import (
 
 	"github.com/arinamklvch/xkcd-helper/internal/adapter"
 	"github.com/arinamklvch/xkcd-helper/internal/domain"
+	"github.com/arinamklvch/xkcd-helper/pkg/utils"
 )
 
 func (s *Service) UpdateComics() error {
@@ -25,7 +26,6 @@ func (s *Service) UpdateComics() error {
 		return err
 	}
 
-	// inserting into database
 	if err := s.comicsStorage.InsertComics(comics); err != nil {
 		return err
 	}
@@ -37,8 +37,13 @@ func (s *Service) insertIntoInvertedIndex(comics []domain.Comic) error {
 	// building inverted index
 	wordsToNums := make(map[string][]int32)
 	for _, comic := range comics {
-		allWords := strings.Split(comic.SafeTitle+" "+comic.Transcript+" "+comic.Alt, " ")
-		for _, word := range allWords {
+		text := strings.Join([]string{comic.SafeTitle, comic.Transcript, comic.Alt}, " ")
+		words, err := utils.NormalizeWords(text)
+		if err != nil {
+			return err
+		}
+
+		for _, word := range words {
 			if !slices.Contains(wordsToNums[word], int32(comic.Num)) {
 				wordsToNums[word] = append(wordsToNums[word], int32(comic.Num))
 			}

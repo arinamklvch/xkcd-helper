@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/arinamklvch/xkcd-helper/internal/dto"
 )
@@ -17,9 +16,9 @@ import (
 // @Failure 500 {string} string "Failed to send JSON"
 // @Router /search-comics [get]
 func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
-	words := strings.Fields(r.URL.Query().Get("q"))
+	query := r.URL.Query().Get("q")
 	output, err := h.service.SearchComics(dto.SearchComicsInput{
-		Words: words,
+		Query: query,
 	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
