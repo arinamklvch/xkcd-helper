@@ -1,7 +1,7 @@
 package dto
 
 type SearchComicsInput struct {
-	Words []string
+	Query string
 }
 
 type SearchComic struct {

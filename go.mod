@@ -3,6 +3,7 @@ module github.com/arinamklvch/xkcd-helper
 go 1.26.4
 
 require (
+	github.com/kljensen/snowball v0.10.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
 )

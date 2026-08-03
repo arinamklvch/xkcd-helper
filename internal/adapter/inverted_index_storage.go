@@ -26,7 +26,6 @@ func NewInvertedIndexStorage(pool *pgxpool.Pool) *InvertedIndexStorage {
 func (i *InvertedIndexStorage) InsertIntoInvertedIndex(args []InsertIntoInvertedIndexArgs) error {
 	dbArgs := make([]db.InsertIntoInvertedIndexParams, 0, len(args))
 	for _, arg := range args {
-		// before stemming table ~1.7mb
 		dbArgs = append(dbArgs, db.InsertIntoInvertedIndexParams{
 			Word:       pgtype.Text{String: arg.Word, Valid: true},
 			ComicsNums: arg.ComicsNums,
