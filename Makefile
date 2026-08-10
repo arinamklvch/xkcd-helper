@@ -2,7 +2,7 @@ SQLC ?= $(HOME)/go/bin/sqlc
 SWAG ?= $(HOME)/go/bin/swag
 GOLANGCI_LINT ?= go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
 
-.PHONY: up db-up db-down db-kill sqlc swag fmt-check lint vet build ci
+.PHONY: up db-up db-down db-kill sqlc swag fmt-check lint vet build ci rate-limit-test
 
 up:
 	docker compose up -d --wait postgres
@@ -37,3 +37,6 @@ build: ## Build all packages
 	GOCACHE=/tmp/go-build go build ./...
 
 ci: fmt-check lint vet build ## Run local CI checks
+
+rate-limit-test: ## Run a simple vegeta test against the current service
+	bash scripts/test-rate-limiter.sh
