@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/last-comics": {
+        "/last-comic": {
             "get": {
                 "description": "Returns the last stored XKCD comic as a \"number, title, image URL\" object.",
                 "produces": [

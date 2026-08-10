@@ -13,7 +13,7 @@ import (
 // @Produce json
 // @Success 200 {object} dto.SearchComic "Last comic"
 // @Failure 500 {string} string "Failed to send JSON"
-// @Router /last-comics [get]
+// @Router /last-comic [get]
 func (h *Handler) getLastComic(w http.ResponseWriter, r *http.Request) {
 	lastComic, err := h.service.GetLastComic()
 	if err != nil {
