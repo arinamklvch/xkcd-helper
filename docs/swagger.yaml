@@ -6,6 +6,13 @@ definitions:
       num:
         type: integer
     type: object
+  dto.LoginRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
   dto.SearchComic:
     properties:
       description:
@@ -71,6 +78,40 @@ paths:
       summary: Load comics
       tags:
       - comics
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Validates user credentials and returns a JWT token.
+      parameters:
+      - description: User login and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: JWT token
+          schema:
+            type: string
+        "400":
+          description: Invalid JSON data or validation error
+          schema:
+            type: string
+        "401":
+          description: Invalid login or password
+          schema:
+            type: string
+        "500":
+          description: Failed to generate token
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - auth
   /search-comics:
     get:
       description: Returns XKCD comics as "number, title, image URL" objects for the
