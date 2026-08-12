@@ -20,11 +20,12 @@ func NewRouter(service *usecase.Service) *http.ServeMux {
 
 	// обработчик с функциями из service
 	handler := NewHandler(service)
-	mux.HandleFunc("GET /load-comics", rateLimitMiddleware(limiters, handler.loadComics))
-	mux.HandleFunc("GET /search-comics", rateLimitMiddleware(limiters, handler.searchComics))
-	mux.HandleFunc("GET /last-comic", rateLimitMiddleware(limiters, handler.getLastComic))
-	mux.HandleFunc("PUT /update", rateLimitMiddleware(limiters, handler.updateComics))
-	mux.HandleFunc("GET /swagger/", httpSwagger.WrapHandler)
 
+	mux.HandleFunc("GET /load-comics", rateLimitMiddleware(limiters, authMiddleware(false, handler.loadComics)))
+	mux.HandleFunc("GET /search-comics", rateLimitMiddleware(limiters, authMiddleware(false, handler.searchComics)))
+	mux.HandleFunc("GET /last-comic", rateLimitMiddleware(limiters, authMiddleware(false, handler.getLastComic)))
+	mux.HandleFunc("GET /swagger/", httpSwagger.WrapHandler)
+	mux.HandleFunc("PUT /update", rateLimitMiddleware(limiters, authMiddleware(true, handler.updateComics)))
+	mux.HandleFunc("POST /login", rateLimitMiddleware(limiters, handler.login))
 	return mux
 }

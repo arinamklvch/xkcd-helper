@@ -26,3 +26,9 @@ type InvertedIndex struct {
 	Word       pgtype.Text `json:"word"`
 	ComicsNums []int32     `json:"comics_nums"`
 }
+
+type User struct {
+	Login    pgtype.Text `json:"login"`
+	Password pgtype.Text `json:"password"`
+	Role     pgtype.Text `json:"role"`
+}

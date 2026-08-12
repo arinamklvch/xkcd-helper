@@ -10,7 +10,7 @@ import (
 )
 
 func (s *Service) UpdateComics() error {
-	// lastDb == 0 when database is empty
+	// lastDbComic.Num == 0 when database is empty
 	lastDbComic, err := s.comicsStorage.GetLastComic()
 	if err != nil {
 		return err
@@ -19,6 +19,10 @@ func (s *Service) UpdateComics() error {
 	lastXkcdNum, err := s.xkcdCLient.GetLastComicNum()
 	if err != nil {
 		return err
+	}
+
+	if lastXkcdNum <= lastDbComic.Num {
+		return nil
 	}
 
 	comics, err := s.xkcdCLient.DownloadComicsRange(lastDbComic.Num+1, lastXkcdNum)

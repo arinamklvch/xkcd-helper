@@ -1,6 +1,8 @@
 package controller
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // @Summary Update comics
 // @Description Downloads and stores new XKCD comics that are not yet present in the database.
@@ -13,6 +15,4 @@ func (h *Handler) updateComics(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
-
-	w.WriteHeader(http.StatusOK)
 }

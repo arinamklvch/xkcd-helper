@@ -33,8 +33,6 @@ func main() {
 }
 
 func run() error {
-	// xkcdClient -- штука которая идет в xkcd и скачивает комиксы
-	// создаем XkcdClient (с дефолтными настройками)
 	xkcdClient := adapter.NewXkcdClient(*http.DefaultClient)
 
 	// подключение к базе
@@ -45,14 +43,15 @@ func run() error {
 	}
 	defer pool.Close()
 
-	// comicsStorage -- штука которая умеет удобно отправлять запросы в БД
-	// создаем ComicsStorage на основе подключения pool
+	// создаем storages на основе подключения pool
 	comicsStorage := adapter.NewComicsStorage(pool)
 	invertedIndexStorage := adapter.NewInvertedIndexStorage(pool)
+	usersStorage := adapter.NewUsersStorage(pool)
 
 	// Service -- объект, в котором будут методы use case / бизнес-логики
-	// xkcdClient, comicsStorage -- инструменты для похода во внешние источники
-	service := usecase.New(xkcdClient, comicsStorage, invertedIndexStorage)
+	// + инструменты для похода во внешние источники
+	service := usecase.New(xkcdClient, comicsStorage, invertedIndexStorage, usersStorage)
+
 	// загружаем все/новые комиксы один раз при запуске
 	err = service.UpdateComics()
 	if err != nil {

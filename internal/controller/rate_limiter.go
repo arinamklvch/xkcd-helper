@@ -10,7 +10,7 @@ const limit = 50
 const burst = 100
 
 func rateLimitMiddleware(limiters userLimiters, next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		_, ok := limiters[r.RemoteAddr]
 		if !ok {
 			limiters[r.RemoteAddr] = rate.NewLimiter(limit, burst)
@@ -21,6 +21,6 @@ func rateLimitMiddleware(limiters userLimiters, next http.HandlerFunc) http.Hand
 			return
 		}
 
-		next.ServeHTTP(w, r)
-	})
+		next(w, r)
+	}
 }
