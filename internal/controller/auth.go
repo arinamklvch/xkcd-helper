@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/arinamklvch/xkcd-helper/internal/domain"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -55,7 +56,7 @@ func authMiddleware(needAdminCheck bool, next http.HandlerFunc) http.HandlerFunc
 			return
 		}
 
-		if needAdminCheck && role != "admin" {
+		if needAdminCheck && role != domain.UsersRoleAdmin {
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return
 		}
