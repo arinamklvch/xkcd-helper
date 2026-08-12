@@ -1,6 +1,6 @@
 SQLC ?= $(HOME)/go/bin/sqlc
 SWAG ?= $(HOME)/go/bin/swag
-GOLANGCI_LINT ?= go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
+GOLANGCI_LINT ?= go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
 
 .PHONY: up db-up db-down db-kill sqlc swag fmt-check lint vet build ci rate-limit-test
 
