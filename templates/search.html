@@ -2,32 +2,82 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>xkcd searcher</title>
     <style>
+        :root {
+            --paper: #fffaf0;
+            --paper-bright: #ffffff;
+            --ink: #151515;
+            --muted: #5f6670;
+            --blue: #2d6cdf;
+            --red: #e14b42;
+            --yellow: #ffd95a;
+            --line: #151515;
+            --shadow: 10px 10px 0 rgba(21, 21, 21, 0.16);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: sans-serif;
+            font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
             line-height: 1.5;
             min-height: 100vh;
-            background: #f3f3f3;
+            color: var(--ink);
+            background:
+                linear-gradient(90deg, rgba(21, 21, 21, 0.045) 1px, transparent 1px),
+                linear-gradient(rgba(21, 21, 21, 0.045) 1px, transparent 1px),
+                radial-gradient(circle at 16px 16px, rgba(45, 108, 223, 0.18) 2px, transparent 2px),
+                #f7efe0;
+            background-size: 38px 38px, 38px 38px, 24px 24px, auto;
             flex-direction: column;
             margin: 0;
+            overflow-x: hidden;
+            padding: 24px;
         }
 
         .main {
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-            padding: 10px 20px;
-            transition: transform 0.2s;
-            width: 500px;
+            position: relative;
+            background-color: var(--paper-bright);
+            border: 3px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 36px;
+            width: min(100%, 540px);
             text-align: center;
         }
 
+        .main::before {
+            content: "";
+            position: absolute;
+            width: 86px;
+            height: 36px;
+            right: 34px;
+            top: -21px;
+            border: 3px solid var(--line);
+            background: var(--yellow);
+            transform: rotate(4deg);
+        }
+
         h1 {
-            color: #2d93aa;
+            margin: 0;
+            color: var(--ink);
+            font-size: clamp(2.1rem, 8vw, 3.35rem);
+            line-height: 0.98;
+            letter-spacing: 0;
+        }
+
+        h3 {
+            margin: 12px 0 28px;
+            color: var(--muted);
+            font-size: 1rem;
+            font-weight: 700;
         }
 
         label {
@@ -45,29 +95,58 @@
             display: block;
             width: 100%;
             margin-bottom: 15px;
-            padding: 10px;
+            padding: 13px 14px;
             box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 2px solid var(--line);
+            border-radius: 8px;
+            background: var(--paper);
+            color: var(--ink);
+            font: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: 4px 4px 0 rgba(45, 108, 223, 0.24);
         }
 
         button {
-            padding: 15px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 8px;
             margin-top: 15px;
             margin-bottom: 15px;
-            border: none;
+            border: 2px solid var(--line);
             color: white;
             cursor: pointer;
-            background-color: #36cad2;
+            background-color: var(--red);
             width: 100%;
             font-size: 16px;
+            font-family: inherit;
+            font-weight: 700;
+            box-shadow: 4px 4px 0 var(--line);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        button:hover {
+            background: var(--blue);
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--line);
         }
 
         .wrap {
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        @media (max-width: 560px) {
+            body {
+                padding: 16px;
+            }
+
+            .main {
+                padding: 30px 22px;
+            }
         }
     </style>
 </head>

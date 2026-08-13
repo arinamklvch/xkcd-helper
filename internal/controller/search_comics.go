@@ -25,8 +25,16 @@ func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 
 	// no query parameters
 	if query == "" {
-		tmpl := template.Must(template.ParseFiles("templates/search.html"))
-		tmpl.Execute(w, nil)
+		tmpl, err := template.ParseFiles("templates/search.html")
+		if err != nil {
+			http.Error(w, "failed to parse template", http.StatusInternalServerError)
+			return
+		}
+		err = tmpl.Execute(w, nil)
+		if err != nil {
+			http.Error(w, "failed to render template", http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 
@@ -38,19 +46,28 @@ func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ouputDto := []dto.SearchComic{}
+	outputDto := []dto.SearchComic{}
 	for _, o := range output {
-		ouputDto = append(ouputDto, dto.SearchComic{
+		outputDto = append(outputDto, dto.SearchComic{
 			Num:    o.Num,
 			Title:  o.Title,
 			ImgUrl: o.Img,
 		})
 	}
 
-	tmpl := template.Must(template.ParseFiles("templates/comics.html"))
-	tmpl.Execute(w, searchComicsPageData{
+	tmpl, err := template.ParseFiles("templates/comics.html")
+	if err != nil {
+		http.Error(w, "failed to parse template", http.StatusInternalServerError)
+		return
+	}
+
+	err = tmpl.Execute(w, searchComicsPageData{
 		Query:  query,
-		Comics: ouputDto,
+		Comics: outputDto,
 	})
+	if err != nil {
+		http.Error(w, "failed to render template", http.StatusInternalServerError)
+		return
+	}
 
 }
