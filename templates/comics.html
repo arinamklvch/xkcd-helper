@@ -6,15 +6,15 @@
     <title>Found Comics</title>
     <style>
         :root {
-            --bg: #f4efe6;
-            --surface: #fffdf8;
-            --surface-strong: #ffffff;
-            --text: #1f2933;
-            --muted: #6b7280;
-            --accent: #d97706;
-            --accent-dark: #9a3412;
-            --border: #eadfce;
-            --shadow: 0 20px 45px rgba(76, 54, 32, 0.12);
+            --paper: #fffaf0;
+            --paper-bright: #ffffff;
+            --ink: #151515;
+            --muted: #5f6670;
+            --blue: #2d6cdf;
+            --red: #e14b42;
+            --yellow: #ffd95a;
+            --line: #151515;
+            --shadow: 10px 10px 0 rgba(21, 21, 21, 0.16);
         }
 
         * {
@@ -25,10 +25,13 @@
             margin: 0;
             min-height: 100vh;
             font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-            color: var(--text);
+            color: var(--ink);
             background:
-                radial-gradient(circle at top left, rgba(217, 119, 6, 0.16), transparent 28%),
-                linear-gradient(180deg, #f9f5ee 0%, var(--bg) 100%);
+                linear-gradient(90deg, rgba(21, 21, 21, 0.045) 1px, transparent 1px),
+                linear-gradient(rgba(21, 21, 21, 0.045) 1px, transparent 1px),
+                radial-gradient(circle at 18px 18px, rgba(255, 217, 90, 0.34) 2px, transparent 2px),
+                #f7efe0;
+            background-size: 38px 38px, 38px 38px, 24px 24px, auto;
         }
 
         .page {
@@ -43,10 +46,10 @@
             gap: 24px;
             align-items: end;
             margin-bottom: 28px;
-            padding: 32px;
-            border: 1px solid var(--border);
-            border-radius: 28px;
-            background: rgba(255, 253, 248, 0.9);
+            padding: 30px;
+            border: 3px solid var(--line);
+            border-radius: 8px;
+            background: var(--paper-bright);
             box-shadow: var(--shadow);
         }
 
@@ -68,9 +71,10 @@
             align-items: center;
             margin-top: 16px;
             padding: 8px 14px;
-            border-radius: 999px;
-            background: rgba(217, 119, 6, 0.12);
-            color: var(--accent-dark);
+            border: 2px solid var(--line);
+            border-radius: 8px;
+            background: var(--yellow);
+            color: var(--ink);
             font-size: 0.95rem;
             font-weight: 700;
         }
@@ -80,12 +84,21 @@
             align-items: center;
             justify-content: center;
             padding: 12px 18px;
-            border-radius: 999px;
+            border: 2px solid var(--line);
+            border-radius: 8px;
             text-decoration: none;
-            color: var(--surface-strong);
-            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: var(--paper-bright);
+            background: var(--red);
             font-weight: 700;
             white-space: nowrap;
+            box-shadow: 4px 4px 0 var(--line);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        .back-link:hover {
+            background: var(--blue);
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 var(--line);
         }
 
         .grid {
@@ -98,10 +111,16 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border-radius: 24px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            box-shadow: 0 14px 35px rgba(31, 41, 51, 0.08);
+            border-radius: 8px;
+            border: 3px solid var(--line);
+            background: var(--paper-bright);
+            box-shadow: 7px 7px 0 rgba(21, 21, 21, 0.12);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 9px 9px 0 rgba(21, 21, 21, 0.18);
         }
 
         .image-wrap {
@@ -111,15 +130,18 @@
             min-height: 240px;
             padding: 18px;
             background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(217, 119, 6, 0.06)),
-                #fff;
+                linear-gradient(90deg, rgba(21, 21, 21, 0.04) 1px, transparent 1px),
+                linear-gradient(rgba(21, 21, 21, 0.04) 1px, transparent 1px),
+                var(--paper);
+            background-size: 22px 22px;
+            border-bottom: 3px solid var(--line);
         }
 
         .image-wrap img {
             max-width: 100%;
             max-height: 280px;
             object-fit: contain;
-            border-radius: 16px;
+            border-radius: 6px;
         }
 
         .content {
@@ -129,9 +151,9 @@
         .number {
             margin: 0 0 8px;
             font-size: 0.8rem;
-            letter-spacing: 0.08em;
+            letter-spacing: 0;
             text-transform: uppercase;
-            color: var(--accent-dark);
+            color: var(--blue);
             font-weight: 700;
         }
 
@@ -142,7 +164,7 @@
         }
 
         .card a {
-            color: var(--accent-dark);
+            color: var(--red);
             font-weight: 700;
             text-decoration: none;
         }
@@ -154,10 +176,11 @@
         .empty {
             padding: 56px 28px;
             text-align: center;
-            border-radius: 24px;
-            border: 1px dashed var(--border);
-            background: rgba(255, 253, 248, 0.8);
+            border-radius: 8px;
+            border: 3px dashed var(--line);
+            background: var(--paper-bright);
             color: var(--muted);
+            box-shadow: var(--shadow);
         }
 
         @media (max-width: 720px) {
