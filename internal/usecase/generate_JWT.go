@@ -10,6 +10,7 @@ import (
 )
 
 const secretKey = "SecretKey"
+const tokenTTL = 15 * time.Minute
 
 var ErrInvalidCredentials = errors.New("invalid login or password")
 
@@ -24,7 +25,7 @@ func (s *Service) GenerateJWT(loginRequest dto.LoginRequest) (string, error) {
 
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(10 * time.Minute).Unix()
+	claims["exp"] = time.Now().Add(tokenTTL).Unix()
 	claims["role"] = user.Role
 	signedToken, err := token.SignedString([]byte(secretKey))
 	if err != nil {

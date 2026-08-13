@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -22,6 +23,7 @@ func (s *Service) UpdateComics() error {
 	}
 
 	if lastXkcdNum <= lastDbComic.Num {
+		fmt.Println("comics are up-to-date")
 		return nil
 	}
 

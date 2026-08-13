@@ -47,9 +47,12 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/plain")
-	_, err = w.Write([]byte(signedToken))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	// set token in cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:  "JWT_token",
+		Value: signedToken,
+	})
+
+	// redirect to search page
+	http.Redirect(w, r, "/search-comics", http.StatusMovedPermanently)
 }

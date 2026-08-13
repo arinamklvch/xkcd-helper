@@ -1,11 +1,16 @@
 package controller
 
 import (
-	"encoding/json"
+	"html/template"
 	"net/http"
 
 	"github.com/arinamklvch/xkcd-helper/internal/dto"
 )
+
+type searchComicsPageData struct {
+	Query  string
+	Comics []dto.SearchComic
+}
 
 // @Summary Search comics
 // @Description Returns XKCD comics as "number, title, image URL" objects for the requested search query.
@@ -17,6 +22,14 @@ import (
 // @Router /search-comics [get]
 func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
+
+	// no query parameters
+	if query == "" {
+		tmpl := template.Must(template.ParseFiles("templates/search.html"))
+		tmpl.Execute(w, nil)
+		return
+	}
+
 	output, err := h.service.SearchComics(dto.SearchComicsInput{
 		Query: query,
 	})
@@ -24,8 +37,6 @@ func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 
 	ouputDto := []dto.SearchComic{}
 	for _, o := range output {
@@ -35,8 +46,11 @@ func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 			ImgUrl: o.Img,
 		})
 	}
-	err = json.NewEncoder(w).Encode(ouputDto)
-	if err != nil {
-		http.Error(w, "failed to send JSON", http.StatusInternalServerError)
-	}
+
+	tmpl := template.Must(template.ParseFiles("templates/comics.html"))
+	tmpl.Execute(w, searchComicsPageData{
+		Query:  query,
+		Comics: ouputDto,
+	})
+
 }
