@@ -13,15 +13,18 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/arinamklvch/xkcd-helper/internal/adapter"
+	"github.com/arinamklvch/xkcd-helper/internal/config"
 	"github.com/arinamklvch/xkcd-helper/internal/controller"
 	"github.com/arinamklvch/xkcd-helper/internal/usecase"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
+	"golang.org/x/time/rate"
 )
 
 func main() {
@@ -33,11 +36,15 @@ func main() {
 }
 
 func run() error {
-	xkcdClient := adapter.NewXkcdClient(*http.DefaultClient)
+	config, err := config.New()
+	if err != nil {
+		return err
+	}
+
+	xkcdClient := adapter.NewXkcdClient(*http.DefaultClient, config.MaxWorkers)
 
 	// подключение к базе
-	databaseURL := "postgres://admin:admin@localhost:5433/xkcd?sslmode=disable"
-	pool, err := initPostgreSQL(databaseURL)
+	pool, err := initPostgreSQL(config.DatabaseURL, config.DbTimeout)
 	if err != nil {
 		return err
 	}
@@ -50,7 +57,8 @@ func run() error {
 
 	// Service -- объект, в котором будут методы use case / бизнес-логики
 	// + инструменты для похода во внешние источники
-	service := usecase.New(xkcdClient, comicsStorage, invertedIndexStorage, usersStorage)
+	service := usecase.New(xkcdClient, comicsStorage, invertedIndexStorage, usersStorage,
+		config.TokenTTL, config.MaxFoundComics, config.JWTsecretKey)
 
 	// загружаем все/новые комиксы один раз при запуске
 	err = service.UpdateComics()
@@ -60,10 +68,10 @@ func run() error {
 
 	// создаем HTTP-роутер
 	// передаем в него service, чтобы хендлеры могли вызывать бизнес-логику
-	router := controller.NewRouter(service)
+	router := controller.NewRouter(service, rate.Limit(config.RateLimit), config.RateBurst, config.JWTsecretKey)
 
 	server := http.Server{
-		Addr:    ":8081",
+		Addr:    ":" + strconv.Itoa(config.Port),
 		Handler: router,
 	}
 
@@ -90,7 +98,7 @@ func run() error {
 		fmt.Println("\ncatched signal:", s)
 	}
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Duration(config.ServerTimeout)*time.Second)
 	defer shutdownCancel()
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		return err
@@ -118,9 +126,9 @@ func runMigrations(databaseURL string) error {
 	return goose.Up(db, "migrations")
 }
 
-func initPostgreSQL(databaseURL string) (*pgxpool.Pool, error) {
+func initPostgreSQL(databaseURL string, timeout int) (*pgxpool.Pool, error) {
 	// ограничение времени на создание/инициализацию пула + проверку БД
-	dbCtx, dbCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	dbCtx, dbCancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer dbCancel()
 
 	pool, err := pgxpool.New(dbCtx, databaseURL)

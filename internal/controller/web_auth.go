@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func webAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func webAuth(JWTsecretKey string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("JWT_token")
 		if err != nil {
@@ -22,7 +22,7 @@ func webAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if err = verifyToken(cookie.Value); err != nil {
+		if err = verifyToken(cookie.Value, JWTsecretKey); err != nil {
 			clearAuthCookie(w)
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
@@ -32,12 +32,12 @@ func webAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func verifyToken(signedToken string) error {
+func verifyToken(signedToken string, JWTsecretKey string) error {
 	token, err := jwt.Parse(signedToken, func(token *jwt.Token) (any, error) {
 		if token.Method != jwt.SigningMethodHS256 {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
-		return []byte(secretKey), nil
+		return []byte(JWTsecretKey), nil
 	})
 
 	if err != nil || !token.Valid {

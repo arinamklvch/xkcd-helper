@@ -10,15 +10,17 @@ import (
 )
 
 const lastComicUrl = "https://xkcd.com/info.0.json"
-const maxWorkers = 5
 
 type XkcdClient struct {
-	client http.Client
+	client     http.Client
+	maxWorkers int
+	// logger
 }
 
-func NewXkcdClient(client http.Client) *XkcdClient {
+func NewXkcdClient(client http.Client, maxWorkers int) *XkcdClient {
 	return &XkcdClient{
-		client: client,
+		client:     client,
+		maxWorkers: maxWorkers,
 	}
 }
 
@@ -78,7 +80,7 @@ func (x *XkcdClient) DownloadComicsRange(from, to int) ([]domain.Comic, error) {
 	comicNums := make(chan int, totalCnt)
 	responses := make(chan response, totalCnt)
 
-	for range maxWorkers {
+	for range x.maxWorkers {
 		go x.worker(comicNums, responses)
 	}
 

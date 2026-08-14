@@ -9,10 +9,9 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-const secretKey = "SecretKey"
 const prefix = "Bearer "
 
-func authMiddleware(needAdminCheck bool, next http.HandlerFunc) http.HandlerFunc {
+func auth(JWTsecretKey string, needAdminCheck bool, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
@@ -36,7 +35,7 @@ func authMiddleware(needAdminCheck bool, next http.HandlerFunc) http.HandlerFunc
 				return nil, fmt.Errorf("unexpected signing method")
 			}
 
-			return []byte(secretKey), nil
+			return []byte(JWTsecretKey), nil
 		})
 
 		if err != nil || !token.Valid {

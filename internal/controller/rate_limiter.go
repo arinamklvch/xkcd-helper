@@ -6,10 +6,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-const limit = 50
-const burst = 100
-
-func rateLimitMiddleware(limiters userLimiters, next http.HandlerFunc) http.HandlerFunc {
+func rateLimit(limiters userLimiters, limit rate.Limit, burst int, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, ok := limiters[r.RemoteAddr]
 		if !ok {

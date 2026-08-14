@@ -9,9 +9,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-const secretKey = "SecretKey"
-const tokenTTL = 15 * time.Minute
-
 var ErrInvalidCredentials = errors.New("invalid login or password")
 
 func (s *Service) GenerateJWT(loginRequest dto.LoginRequest) (string, error) {
@@ -25,9 +22,9 @@ func (s *Service) GenerateJWT(loginRequest dto.LoginRequest) (string, error) {
 
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["exp"] = time.Now().Add(tokenTTL).Unix()
+	claims["exp"] = time.Now().Add(time.Duration(s.tokenTTL) * time.Minute).Unix()
 	claims["role"] = user.Role
-	signedToken, err := token.SignedString([]byte(secretKey))
+	signedToken, err := token.SignedString([]byte(s.JWTsecretKey))
 	if err != nil {
 		return "", err
 	}
