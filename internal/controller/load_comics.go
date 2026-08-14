@@ -2,10 +2,12 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/arinamklvch/xkcd-helper/internal/dto"
+	"github.com/arinamklvch/xkcd-helper/internal/usecase"
 )
 
 // @Summary Load comics
@@ -15,6 +17,7 @@ import (
 // @Param from query int true "Starting comic number"
 // @Param to query int true "Ending comic number"
 // @Success 200 {array} dto.LoadComic "Loaded comics"
+// @Failure 400 {string} string "Invalid request parameters"
 // @Failure 500 {string} string "Failed to send JSON"
 // @Router /load-comics [get]
 func (h *Handler) loadComics(w http.ResponseWriter, r *http.Request) {
@@ -35,20 +38,27 @@ func (h *Handler) loadComics(w http.ResponseWriter, r *http.Request) {
 		To:   to,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if errors.Is(err, usecase.ErrInvalidRange) {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		h.logger.Error("failed to load comics", "method", r.Method, "path", r.URL.Path, "from", from, "to", to, "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 
-	ouputDto := []dto.LoadComic{}
+	outputDto := []dto.LoadComic{}
 	for _, o := range output {
-		ouputDto = append(ouputDto, dto.LoadComic{
+		outputDto = append(outputDto, dto.LoadComic{
 			Num:   o.Num,
 			Title: o.Title,
 		})
 	}
-	err = json.NewEncoder(w).Encode(ouputDto)
+	err = json.NewEncoder(w).Encode(outputDto)
 	if err != nil {
-		http.Error(w, "Failed to send JSON", http.StatusInternalServerError)
+		h.logger.Error("failed to send load comics response", "method", r.Method, "path", r.URL.Path, "error", err)
+		http.Error(w, "failed to send JSON", http.StatusInternalServerError)
 	}
 }

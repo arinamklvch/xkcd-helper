@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/arinamklvch/xkcd-helper/internal/adapter"
@@ -17,7 +18,7 @@ func (s *Service) GenerateJWT(loginRequest dto.LoginRequest) (string, error) {
 		return "", ErrInvalidCredentials
 	}
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("get user from database: %w", err)
 	}
 
 	token := jwt.New(jwt.SigningMethodHS256)
@@ -26,7 +27,7 @@ func (s *Service) GenerateJWT(loginRequest dto.LoginRequest) (string, error) {
 	claims["role"] = user.Role
 	signedToken, err := token.SignedString([]byte(s.JWTsecretKey))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("sign JWT token: %w", err)
 	}
 
 	return signedToken, nil

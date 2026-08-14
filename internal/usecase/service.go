@@ -1,6 +1,10 @@
 package usecase
 
-import "github.com/arinamklvch/xkcd-helper/internal/adapter"
+import (
+	"log/slog"
+
+	"github.com/arinamklvch/xkcd-helper/internal/adapter"
+)
 
 type Service struct {
 	xkcdCLient           *adapter.XkcdClient
@@ -10,11 +14,12 @@ type Service struct {
 	tokenTTL             int
 	maxFoundComics       int
 	JWTsecretKey         string
+	logger               *slog.Logger
 }
 
 func New(xkcdClient *adapter.XkcdClient, comicsStorage *adapter.ComicsStorage,
 	invertedIndexStorage *adapter.InvertedIndexStorage, usersStorage *adapter.UsersStorage,
-	tokenTTL int, maxFoundComics int, JWTsecretKey string) *Service {
+	tokenTTL int, maxFoundComics int, JWTsecretKey string, logger *slog.Logger) *Service {
 	return &Service{
 		xkcdCLient:           xkcdClient,
 		comicsStorage:        comicsStorage,
@@ -23,5 +28,6 @@ func New(xkcdClient *adapter.XkcdClient, comicsStorage *adapter.ComicsStorage,
 		tokenTTL:             tokenTTL,
 		maxFoundComics:       maxFoundComics,
 		JWTsecretKey:         JWTsecretKey,
+		logger:               logger,
 	}
 }

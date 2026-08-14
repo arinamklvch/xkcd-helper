@@ -8,14 +8,15 @@ import (
 )
 
 type Config struct {
-	ServerTimeout  int `yaml:"server_shutdown_timeout"`
-	DbTimeout      int `yaml:"db_connect_timeout"`
-	Port           int `yaml:"port"`
-	MaxWorkers     int `yaml:"max_workers"`
-	RateLimit      int `yaml:"rate_limit"`
-	RateBurst      int `yaml:"rate_burst"`
-	TokenTTL       int `yaml:"token_TTL"`
-	MaxFoundComics int `yaml:"max_found_comics"`
+	ServerTimeout  int    `yaml:"server_shutdown_timeout"`
+	DbTimeout      int    `yaml:"db_connect_timeout"`
+	Port           int    `yaml:"port"`
+	MaxWorkers     int    `yaml:"max_workers"`
+	RateLimit      int    `yaml:"rate_limit"`
+	RateBurst      int    `yaml:"rate_burst"`
+	TokenTTL       int    `yaml:"token_TTL"`
+	MaxFoundComics int    `yaml:"max_found_comics"`
+	LoggerLevel    string `yaml:"logger_level"`
 	JWTsecretKey   string
 	DatabaseURL    string
 }

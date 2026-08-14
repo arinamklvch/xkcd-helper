@@ -21,3 +21,6 @@ token_TTL: # minutes
 
 max_found_comics:
   10
+
+logger_level: # debug / info / warn / error
+  info

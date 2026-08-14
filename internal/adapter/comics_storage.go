@@ -3,6 +3,7 @@ package adapter
 import (
 	"context"
 	"errors"
+	"log/slog"
 
 	"github.com/arinamklvch/xkcd-helper/internal/db"
 	"github.com/arinamklvch/xkcd-helper/internal/domain"
@@ -13,11 +14,13 @@ import (
 
 type ComicsStorage struct {
 	queries *db.Queries
+	logger  *slog.Logger
 }
 
-func NewComicsStorage(pool *pgxpool.Pool) *ComicsStorage {
+func NewComicsStorage(pool *pgxpool.Pool, logger *slog.Logger) *ComicsStorage {
 	return &ComicsStorage{
 		queries: db.New(pool),
+		logger:  logger,
 	}
 }
 
@@ -27,6 +30,8 @@ func (c *ComicsStorage) GetLastComic() (domain.Comic, error) {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.Comic{}, nil
 		}
+
+		c.logger.Error("failed to get last comic from database", "error", err)
 		return domain.Comic{}, err
 	}
 
@@ -39,6 +44,11 @@ func (c *ComicsStorage) GetComicsRange(from, to int) ([]domain.Comic, error) {
 		To:   pgtype.Int4{Int32: int32(to), Valid: true},
 	})
 	if err != nil {
+		c.logger.Error("failed to get comics range from database",
+			"from", from,
+			"to", to,
+			"error", err,
+		)
 		return nil, err
 	}
 
@@ -48,6 +58,9 @@ func (c *ComicsStorage) GetComicsRange(from, to int) ([]domain.Comic, error) {
 func (c *ComicsStorage) GetComicsByNums(nums []int32) ([]domain.Comic, error) {
 	dbComics, err := c.queries.GetComicsByNums(context.Background(), nums)
 	if err != nil {
+		c.logger.Error("failed to get comics by nums from database",
+			"error", err,
+		)
 		return nil, err
 	}
 
@@ -97,6 +110,12 @@ func (c *ComicsStorage) InsertComics(comics []domain.Comic) error {
 	}
 
 	_, err := c.queries.InsertComics(context.Background(), dbComics)
+	if err != nil {
+		c.logger.Error("failed to insert comics into database",
+			"error", err,
+		)
+		return err
+	}
 
-	return err
+	return nil
 }

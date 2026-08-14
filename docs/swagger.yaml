@@ -71,6 +71,10 @@ paths:
             items:
               $ref: '#/definitions/dto.LoadComic'
             type: array
+        "400":
+          description: Invalid request parameters
+          schema:
+            type: string
         "500":
           description: Failed to send JSON
           schema:
@@ -114,25 +118,22 @@ paths:
       - auth
   /search-comics:
     get:
-      description: Returns XKCD comics as "number, title, image URL" objects for the
-        requested search query.
+      description: Renders a search form or XKCD comics matching the requested search
+        query.
       parameters:
       - description: Search query words separated by spaces
         in: query
         name: q
-        required: true
         type: string
       produces:
-      - application/json
+      - text/html
       responses:
         "200":
-          description: Matching comics
+          description: Search page or matching comics page
           schema:
-            items:
-              $ref: '#/definitions/dto.SearchComic'
-            type: array
+            type: string
         "500":
-          description: Failed to send JSON
+          description: Internal server error
           schema:
             type: string
       summary: Search comics

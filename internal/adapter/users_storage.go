@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
 
 	"github.com/arinamklvch/xkcd-helper/internal/db"
 	"github.com/arinamklvch/xkcd-helper/internal/domain"
@@ -13,11 +14,13 @@ import (
 
 type UsersStorage struct {
 	queries *db.Queries
+	logger  *slog.Logger
 }
 
-func NewUsersStorage(pool *pgxpool.Pool) *UsersStorage {
+func NewUsersStorage(pool *pgxpool.Pool, logger *slog.Logger) *UsersStorage {
 	return &UsersStorage{
 		queries: db.New(pool),
+		logger:  logger,
 	}
 }
 
@@ -32,6 +35,8 @@ func (u *UsersStorage) GetUser(login, password string) (domain.User, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
 		}
+
+		u.logger.Error("failed to get user from database", "error", err)
 		return domain.User{}, err
 	}
 
