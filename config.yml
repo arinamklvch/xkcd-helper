@@ -1,0 +1,23 @@
+server_shutdown_timeout: # seconds
+  10
+
+db_connect_timeout: # seconds
+  10
+
+port:
+  8081
+
+max_workers:
+  5
+
+rate_limit:
+  50
+
+rate_burst:
+  100
+
+token_TTL: # minutes
+  30
+
+max_found_comics:
+  10
