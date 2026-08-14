@@ -11,11 +11,11 @@ import (
 func (s *Service) SearchComics(input dto.SearchComicsInput) ([]domain.Comic, error) {
 	queryWords, err := utils.NormalizeWords(input.Query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("normalize query words: %w", err)
 	}
 	comicsNums, err := s.invertedIndexStorage.GetFromInvertedIndex(queryWords)
 	if err != nil {
-		return nil, fmt.Errorf("error while searching comics in database")
+		return nil, fmt.Errorf("search comics in database: %w", err)
 	}
 
 	seen := make(map[int32]int)
@@ -48,7 +48,7 @@ OuterLoop:
 
 	comics, err := s.comicsStorage.GetComicsByNums(suitableNums)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get found comics from database: %w", err)
 	}
 
 	return comics, nil

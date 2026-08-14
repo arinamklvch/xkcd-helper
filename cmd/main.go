@@ -10,10 +10,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -41,7 +43,17 @@ func run() error {
 		return err
 	}
 
-	xkcdClient := adapter.NewXkcdClient(*http.DefaultClient, config.MaxWorkers)
+	// определение уровня логирования
+	logLevel, err := parseLogLevel(config.LoggerLevel)
+	if err != nil {
+		return err
+	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: logLevel,
+	}))
+
+	xkcdClient := adapter.NewXkcdClient(*http.DefaultClient, config.MaxWorkers, logger)
 
 	// подключение к базе
 	pool, err := initPostgreSQL(config.DatabaseURL, config.DbTimeout)
@@ -51,14 +63,14 @@ func run() error {
 	defer pool.Close()
 
 	// создаем storages на основе подключения pool
-	comicsStorage := adapter.NewComicsStorage(pool)
-	invertedIndexStorage := adapter.NewInvertedIndexStorage(pool)
-	usersStorage := adapter.NewUsersStorage(pool)
+	comicsStorage := adapter.NewComicsStorage(pool, logger)
+	invertedIndexStorage := adapter.NewInvertedIndexStorage(pool, logger)
+	usersStorage := adapter.NewUsersStorage(pool, logger)
 
 	// Service -- объект, в котором будут методы use case / бизнес-логики
 	// + инструменты для похода во внешние источники
 	service := usecase.New(xkcdClient, comicsStorage, invertedIndexStorage, usersStorage,
-		config.TokenTTL, config.MaxFoundComics, config.JWTsecretKey)
+		config.TokenTTL, config.MaxFoundComics, config.JWTsecretKey, logger)
 
 	// загружаем все/новые комиксы один раз при запуске
 	err = service.UpdateComics()
@@ -68,7 +80,7 @@ func run() error {
 
 	// создаем HTTP-роутер
 	// передаем в него service, чтобы хендлеры могли вызывать бизнес-логику
-	router := controller.NewRouter(service, rate.Limit(config.RateLimit), config.RateBurst, config.JWTsecretKey)
+	router := controller.NewRouter(service, rate.Limit(config.RateLimit), config.RateBurst, config.JWTsecretKey, logger)
 
 	server := http.Server{
 		Addr:    ":" + strconv.Itoa(config.Port),
@@ -105,6 +117,21 @@ func run() error {
 	}
 
 	return nil
+}
+
+func parseLogLevel(value string) (slog.Level, error) {
+	var logLevel slog.Level
+
+	if value == "" {
+		return slog.LevelInfo, nil
+	}
+
+	err := logLevel.UnmarshalText([]byte(strings.ToUpper(value)))
+	if err != nil {
+		return slog.LevelInfo, fmt.Errorf("invalid logger_level %q: %w", value, err)
+	}
+
+	return logLevel, nil
 }
 
 func runMigrations(databaseURL string) error {

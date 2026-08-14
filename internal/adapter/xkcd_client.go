@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/arinamklvch/xkcd-helper/internal/domain"
@@ -14,13 +15,14 @@ const lastComicUrl = "https://xkcd.com/info.0.json"
 type XkcdClient struct {
 	client     http.Client
 	maxWorkers int
-	// logger
+	logger     *slog.Logger
 }
 
-func NewXkcdClient(client http.Client, maxWorkers int) *XkcdClient {
+func NewXkcdClient(client http.Client, maxWorkers int, logger *slog.Logger) *XkcdClient {
 	return &XkcdClient{
 		client:     client,
 		maxWorkers: maxWorkers,
+		logger:     logger,
 	}
 }
 
@@ -43,31 +45,36 @@ type response struct {
 	Err   error
 }
 
-func closeBody(body io.Closer) {
+func (x *XkcdClient) closeBody(body io.Closer) {
 	if err := body.Close(); err != nil {
-		fmt.Println("failed to close response body:", err)
+		x.logger.Error("failed to close response body", "error", err)
 	}
 }
 
 func (x *XkcdClient) GetLastComicNum() (int, error) {
 	resp, err := x.client.Get(lastComicUrl)
 	if err != nil {
+		x.logger.Error("failed to get last xkcd comic", "url", lastComicUrl, "error", err)
 		return 0, err
 	}
-	defer closeBody(resp.Body)
+	defer x.closeBody(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("unexpected status code: %s", resp.Status)
+		err := fmt.Errorf("unexpected status code: %s", resp.Status)
+		x.logger.Error("failed to get last xkcd comic", "url", lastComicUrl, "status", resp.Status, "error", err)
+		return 0, err
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		x.logger.Error("failed to read last xkcd comic response body", "url", lastComicUrl, "error", err)
 		return 0, err
 	}
 
 	var comic domain.Comic
 	err = json.Unmarshal(body, &comic)
 	if err != nil {
+		x.logger.Error("failed to unmarshal last xkcd comic", "url", lastComicUrl, "error", err)
 		return 0, err
 	}
 
@@ -75,7 +82,7 @@ func (x *XkcdClient) GetLastComicNum() (int, error) {
 }
 
 func (x *XkcdClient) DownloadComicsRange(from, to int) ([]domain.Comic, error) {
-	fmt.Println("start downloading...")
+	x.logger.Info("start downloading comics", "from", from, "to", to)
 	totalCnt := to - from + 1
 	comicNums := make(chan int, totalCnt)
 	responses := make(chan response, totalCnt)
@@ -95,6 +102,7 @@ func (x *XkcdClient) DownloadComicsRange(from, to int) ([]domain.Comic, error) {
 		count++
 		resp := <-responses
 		if resp.Err != nil {
+			x.logger.Error("failed to download comics range", "from", from, "to", to, "downloaded", count-1, "error", resp.Err)
 			return nil, resp.Err
 		}
 		if resp.Comic == nil {
@@ -116,10 +124,10 @@ func (x *XkcdClient) DownloadComicsRange(from, to int) ([]domain.Comic, error) {
 		})
 
 		if count%100 == 0 {
-			fmt.Println("comics downloaded:", count)
+			x.logger.Info("comics downloaded", "count", count, "total", totalCnt)
 		}
 	}
-	fmt.Println("finished downloading.")
+	x.logger.Info("finished downloading comics", "count", len(comics), "requested", totalCnt)
 	return comics, nil
 }
 
@@ -131,25 +139,29 @@ func (x *XkcdClient) worker(comicNum <-chan int, responses chan<- response) {
 		resp, err := x.client.Get(url)
 
 		if err != nil {
+			x.logger.Error("failed to get xkcd comic", "comic_num", n, "url", url, "error", err)
 			responses <- response{Err: err}
 			continue
 		}
 
 		if n == http.StatusNotFound {
-			closeBody(resp.Body)
+			x.closeBody(resp.Body)
 			responses <- response{}
 			continue
 		}
 
 		if resp.StatusCode != http.StatusOK {
-			closeBody(resp.Body)
-			responses <- response{Err: fmt.Errorf("unexpected status code: %s", resp.Status)}
+			err := fmt.Errorf("unexpected status code: %s", resp.Status)
+			x.logger.Error("failed to get xkcd comic", "comic_num", n, "url", url, "status", resp.Status, "error", err)
+			x.closeBody(resp.Body)
+			responses <- response{Err: err}
 			continue
 		}
 
 		body, err := io.ReadAll(resp.Body)
-		closeBody(resp.Body)
+		x.closeBody(resp.Body)
 		if err != nil {
+			x.logger.Error("failed to read xkcd comic response body", "comic_num", n, "url", url, "error", err)
 			responses <- response{Err: err}
 			continue
 		}
@@ -157,6 +169,7 @@ func (x *XkcdClient) worker(comicNum <-chan int, responses chan<- response) {
 		var comic Comic
 		err = json.Unmarshal(body, &comic)
 		if err != nil {
+			x.logger.Error("failed to unmarshal xkcd comic", "comic_num", n, "url", url, "error", err)
 			responses <- response{Err: err}
 			continue
 		}

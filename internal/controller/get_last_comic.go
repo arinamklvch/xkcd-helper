@@ -17,20 +17,22 @@ import (
 func (h *Handler) getLastComic(w http.ResponseWriter, r *http.Request) {
 	lastComic, err := h.service.GetLastComic()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		h.logger.Error("failed to get last comic", "method", r.Method, "path", r.URL.Path, "error", err)
+		http.Error(w, "failed to get last comic", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 
-	ouputDto := dto.SearchComic{
+	outputDto := dto.SearchComic{
 		Num:    lastComic.Num,
 		Title:  lastComic.Title,
 		ImgUrl: lastComic.Img,
 	}
 
-	err = json.NewEncoder(w).Encode(ouputDto)
+	err = json.NewEncoder(w).Encode(outputDto)
 	if err != nil {
+		h.logger.Error("failed to send last comic response", "method", r.Method, "path", r.URL.Path, "error", err)
 		http.Error(w, "failed to send JSON", http.StatusInternalServerError)
 	}
 }

@@ -77,6 +77,12 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     "500": {
                         "description": "Failed to send JSON",
                         "schema": {
@@ -140,9 +146,9 @@ const docTemplate = `{
         },
         "/search-comics": {
             "get": {
-                "description": "Returns XKCD comics as \"number, title, image URL\" objects for the requested search query.",
+                "description": "Renders a search form or XKCD comics matching the requested search query.",
                 "produces": [
-                    "application/json"
+                    "text/html"
                 ],
                 "tags": [
                     "comics"
@@ -153,22 +159,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search query words separated by spaces",
                         "name": "q",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Matching comics",
+                        "description": "Search page or matching comics page",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/dto.SearchComic"
-                            }
+                            "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Failed to send JSON",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "string"
                         }

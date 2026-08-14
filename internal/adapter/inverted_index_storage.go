@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/arinamklvch/xkcd-helper/internal/db"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -10,6 +11,7 @@ import (
 
 type InvertedIndexStorage struct {
 	queries *db.Queries
+	logger  *slog.Logger
 }
 
 type InsertIntoInvertedIndexArgs struct {
@@ -17,9 +19,10 @@ type InsertIntoInvertedIndexArgs struct {
 	ComicsNums []int32
 }
 
-func NewInvertedIndexStorage(pool *pgxpool.Pool) *InvertedIndexStorage {
+func NewInvertedIndexStorage(pool *pgxpool.Pool, logger *slog.Logger) *InvertedIndexStorage {
 	return &InvertedIndexStorage{
 		queries: db.New(pool),
+		logger:  logger,
 	}
 }
 
@@ -32,13 +35,22 @@ func (i *InvertedIndexStorage) InsertIntoInvertedIndex(args []InsertIntoInverted
 		})
 	}
 	_, err := i.queries.InsertIntoInvertedIndex(context.Background(), dbArgs)
+	if err != nil {
+		i.logger.Error("failed to insert inverted index into database",
+			"error", err,
+		)
+		return err
+	}
 
-	return err
+	return nil
 }
 
 func (i *InvertedIndexStorage) GetFromInvertedIndex(words []string) ([][]int32, error) {
 	comicsNums, err := i.queries.GetFromInvertedIndex(context.Background(), words)
 	if err != nil {
+		i.logger.Error("failed to get comics nums from inverted index",
+			"error", err,
+		)
 		return nil, err
 	}
 

@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/arinamklvch/xkcd-helper/internal/dto"
@@ -26,12 +25,13 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	var loginRequest dto.LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&loginRequest)
 	if err != nil {
+		h.logger.Info("failed to decode login request", "method", r.Method, "path", r.URL.Path, "error", err)
 		http.Error(w, "invalid JSON data", http.StatusBadRequest)
 		return
 	}
 	defer func() {
 		if err := r.Body.Close(); err != nil {
-			fmt.Println("failed to close response body:", err)
+			h.logger.Error("failed to close request body", "method", r.Method, "path", r.URL.Path, "error", err)
 		}
 	}()
 
@@ -39,10 +39,12 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 	signedToken, err := h.service.GenerateJWT(loginRequest)
 	if err != nil {
 		if errors.Is(err, usecase.ErrInvalidCredentials) {
+			h.logger.Info("invalid login credentials", "method", r.Method, "path", r.URL.Path)
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
+		h.logger.Error("failed to generate JWT", "method", r.Method, "path", r.URL.Path, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}

@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"log/slog"
 	"net/http"
+	"sync"
 
 	_ "github.com/arinamklvch/xkcd-helper/docs"
 	"github.com/arinamklvch/xkcd-helper/internal/usecase"
@@ -9,28 +11,33 @@ import (
 	"golang.org/x/time/rate"
 )
 
-type userLimiters map[string]*rate.Limiter
+type userLimiters struct {
+	mu       sync.Mutex
+	limiters map[string]*rate.Limiter
+}
 
 // собираем таблицу маршрутов для сервера
 // “распределитель” HTTP-запросов
-func NewRouter(service *usecase.Service, limit rate.Limit, burst int, JWTsecretKey string) *http.ServeMux {
+func NewRouter(service *usecase.Service, limit rate.Limit, burst int, JWTsecretKey string, logger *slog.Logger) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	limiters := make(userLimiters)
+	limiters := &userLimiters{
+		limiters: make(map[string]*rate.Limiter),
+	}
 
 	// обработчик с функциями из service
-	handler := NewHandler(service)
+	handler := NewHandler(service, logger)
 
 	rateLimitMiddleware := func(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 		return rateLimit(limiters, limit, burst, next)
 	}
 
 	authMiddleware := func(needAdminCheck bool, next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-		return auth(JWTsecretKey, needAdminCheck, next)
+		return auth(JWTsecretKey, needAdminCheck, logger, next)
 	}
 
 	webAuthMiddleware := func(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-		return webAuth(JWTsecretKey, next)
+		return webAuth(JWTsecretKey, logger, next)
 	}
 
 	// educational

@@ -13,12 +13,12 @@ type searchComicsPageData struct {
 }
 
 // @Summary Search comics
-// @Description Returns XKCD comics as "number, title, image URL" objects for the requested search query.
+// @Description Renders a search form or XKCD comics matching the requested search query.
 // @Tags comics
-// @Produce json
-// @Param q query string true "Search query words separated by spaces"
-// @Success 200 {array} dto.SearchComic "Matching comics"
-// @Failure 500 {string} string "Failed to send JSON"
+// @Produce html
+// @Param q query string false "Search query words separated by spaces"
+// @Success 200 {string} string "Search page or matching comics page"
+// @Failure 500 {string} string "Internal server error"
 // @Router /search-comics [get]
 func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("q")
@@ -27,11 +27,13 @@ func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 	if query == "" {
 		tmpl, err := template.ParseFiles("templates/search.html")
 		if err != nil {
+			h.logger.Error("failed to parse search template", "method", r.Method, "path", r.URL.Path, "error", err)
 			http.Error(w, "failed to parse template", http.StatusInternalServerError)
 			return
 		}
 		err = tmpl.Execute(w, nil)
 		if err != nil {
+			h.logger.Error("failed to render search template", "method", r.Method, "path", r.URL.Path, "error", err)
 			http.Error(w, "failed to render template", http.StatusInternalServerError)
 			return
 		}
@@ -42,7 +44,8 @@ func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 		Query: query,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		h.logger.Error("failed to search comics", "method", r.Method, "path", r.URL.Path, "query", query, "error", err)
+		http.Error(w, "failed to search comics", http.StatusInternalServerError)
 		return
 	}
 
@@ -57,6 +60,7 @@ func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles("templates/comics.html")
 	if err != nil {
+		h.logger.Error("failed to parse comics template", "method", r.Method, "path", r.URL.Path, "error", err)
 		http.Error(w, "failed to parse template", http.StatusInternalServerError)
 		return
 	}
@@ -66,8 +70,8 @@ func (h *Handler) searchComics(w http.ResponseWriter, r *http.Request) {
 		Comics: outputDto,
 	})
 	if err != nil {
+		h.logger.Error("failed to render comics template", "method", r.Method, "path", r.URL.Path, "query", query, "error", err)
 		http.Error(w, "failed to render template", http.StatusInternalServerError)
 		return
 	}
-
 }
