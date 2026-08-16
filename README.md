@@ -2,6 +2,8 @@
 
 XKCD Helper is a Go web service for downloading, indexing, and searching XKCD comics. It keeps comic metadata in PostgreSQL, builds an inverted index for search, provides HTTP API endpoints, and includes a small browser UI for logging in and searching comics.
 
+[demo.webm](https://github.com/user-attachments/assets/772f7db5-ffa2-4094-80af-b4764d6cc65d)
+
 ## Installation
 
 1. Clone the repository:
